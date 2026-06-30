@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeVision - Image Processing</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .upload-section, .controls-section, .results-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .upload-section { width: 100%; max-width: 500px; text-align: center; }
+        .controls-section { width: 100%; max-width: 300px; }
+        .results-section { width: 100%; flex-grow: 1; min-width: 500px; }
+        .controls-section label, .controls-section select, .controls-section button {
+            display: block;
+            margin-bottom: 10px;
+            width: calc(100% - 10px);
+        }
+        .controls-section select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .controls-section button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .controls-section button:hover { background-color: #0056b3; }
+        #imagePreview, #comparisonContainer {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #comparisonContainer {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+        }
+        .image-wrapper {
+            text-align: center;
+            margin: 10px;
+        }
+        .image-wrapper img {
+            max-width: 45%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="upload-section">
+            <h2>Upload Image</h2>
+            <input type="file" id="imageUpload" accept="image/*">
+            <div id="imagePreviewContainer" class="hidden">
+                <h3>Preview:</h3>
+                <img id="imagePreview" src="#" alt="Image Preview">
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <h2>Processing Options</h2>
+            <label for="algorithm">Select Algorithm:</label>
+            <select id="algorithm">
+                <option value="canny">Canny Edge Detection</option>
+                <option value="sobel">Sobel Operator</option>
+                <option value="prewitt">Prewitt Operator</option>
+                <option value="laplacian">Laplacian Operator</option>
+                <option value="hsv">HSV Color Space</option>
+            </select>
+            <button id="processButton">Process Image</button>
+        </div>
+
+        <div class="results-section">
+            <h2>Results</h2>
+            <div id="comparisonContainer">
+                <div class="image-wrapper hidden">
+                    <h3>Original</h3>
+                    <img id="originalImageDisplay" src="#" alt="Original Image">
+                </div>
+                <div class="image-wrapper hidden">
+                    <h3>Processed</h3>
+                    <img id="processedImageDisplay" src="#" alt="Processed Image">
+                </div>
+            </div>
+            <p id="processingStatus" style="text-align: center;"></p>
+        </div>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const algorithmSelect = document.getElementById('algorithm');
+        const processButton = document.getElementById('processButton');
+        const originalImageDisplay = document.getElementById('originalImageDisplay');
+        const processedImageDisplay = document.getElementById('processedImageDisplay');
+        const comparisonContainer = document.getElementById('comparisonContainer');
+        const processingStatus = document.getElementById('processingStatus');
+        const originalImageWrapper = document.querySelector('#comparisonContainer .image-wrapper:nth-of-type(1)');
+        const processedImageWrapper = document.querySelector('#comparisonContainer .image-wrapper:nth-of-type(2)');
+
+        let uploadedImage = null;
+
+        imageUpload.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage = e.target.result;
+                    imagePreview.src = uploadedImage;
+                    imagePreviewContainer.classList.remove('hidden');
+                    originalImageDisplay.src = uploadedImage; // Set original image display
+                    originalImageWrapper.classList.remove('hidden');
+                    processedImageWrapper.classList.add('hidden'); // Hide processed image initially
+                    comparisonContainer.classList.remove('hidden');
+                    processingStatus.textContent = '';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                uploadedImage = null;
+                imagePreview.src = '#';
+                imagePreviewContainer.classList.add('hidden');
+                comparisonContainer.classList.add('hidden');
+                originalImageWrapper.classList.add('hidden');
+                processedImageWrapper.classList.add('hidden');
+                processingStatus.textContent = '';
+            }
+        });
+
+        processButton.addEventListener('click', async () => {
+            if (!uploadedImage) {
+                processingStatus.textContent = 'Please upload an image first.';
+                return;
+            }
+
+            const algorithm = algorithmSelect.value;
+            processingStatus.textContent = 'Processing...';
+            comparisonContainer.classList.remove('hidden');
+            processedImageWrapper.classList.remove('hidden'); // Show processed image section
+
+            try {
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        image: uploadedImage,
+                        algorithm: algorithm
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.processed_image) {
+                    processedImageDisplay.src = result.processed_image;
+                    processingStatus.textContent = 'Processing complete!';
+                } else {
+                    processingStatus.textContent = 'Error: No processed image returned.';
+                    console.error('Processing failed:', result);
+                }
+            } catch (error) {
+                processingStatus.textContent = 'An error occurred during processing.';
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

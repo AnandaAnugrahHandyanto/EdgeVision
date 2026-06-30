@@ -1,0 +1,7 @@
+services:
+  edgevision:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
