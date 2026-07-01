@@ -1,188 +1,394 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EdgeVision - Image Processing</title>
+    <title>EdgeVision Web</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-        .upload-section, .controls-section, .results-section {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
+        /* Material You Inspired Color Palette (Refined) */
+        :root {
+            --md-sys-color-primary: #8E24AA; /* Darker Purple, more vibrant */
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #E1BEE7; /* Lighter purple */
+            --md-sys-color-on-primary-container: #4A148C;
+
+            --md-sys-color-secondary: #AB47BC; /* Medium purple */
+            --md-sys-color-on-secondary: #FFFFFF;
+            --md-sys-color-secondary-container: #F3E5F5; /* Very light purple */
+            --md-sys-color-on-secondary-container: #6A1B9A;
+
+            --md-sys-color-tertiary: #7D5260;
+            --md-sys-color-on-tertiary: #FFFFFF;
+            --md-sys-color-tertiary-container: #FFD8E4;
+            --md-sys-color-on-tertiary-container: #31111D;
+
+            --md-sys-color-error: #B3261E;
+            --md-sys-color-on-error: #FFFFFF;
+            --md-sys-color-error-container: #F9DEDC;
+            --md-sys-color-on-error-container: #410E0B;
+
+            --md-sys-color-background-start: #EADDFF; /* Start color for gradient */
+            --md-sys-color-background-end: #D0BCFF; /* End color for gradient */
+            --md-sys-color-surface-translucent: rgba(255, 255, 255, 0.7); /* Semi-transparent white for glassmorphism */
+            --md-sys-color-on-surface: #1C1B1F;
+            --md-sys-color-outline: rgba(121, 116, 126, 0.3); /* Softer outline */
+
+            /* Spacing & Radii */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --radius-sm: 12px; /* Increased */
+            --radius-md: 20px; /* Increased */
+            --radius-lg: 32px; /* Increased */
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: var(--spacing-lg);
+            background: linear-gradient(135deg, var(--md-sys-color-background-start) 0%, var(--md-sys-color-background-end) 100%); /* Gradient background */
+            color: var(--md-sys-color-on-background);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Center vertically */
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px; /* Adjusted width */
+            margin: var(--spacing-lg) auto;
+            background: var(--md-sys-color-surface-translucent);
+            padding: 35px 40px; /* More padding */
+            border-radius: var(--radius-lg);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1); /* Glassmorphism shadow */
+            backdrop-filter: blur(10px); /* Glassmorphism blur */
+            -webkit-backdrop-filter: blur(10px); /* Safari support */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Light border */
+        }
+
+        h1 {
+            color: var(--md-sys-color-primary);
+            text-align: center;
+            margin-bottom: 50px;
+            font-weight: 700;
+            font-size: 2.8em;
+            letter-spacing: -0.03em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05); /* Subtle text shadow */
+        }
+
+        .form-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg); /* Larger gap */
+            margin-bottom: var(--spacing-lg);
+        }
+
+        @media (min-width: 768px) {
+            .form-section {
+                grid-template-columns: 2fr 1fr auto;
+                align-items: flex-end; /* Align items to the bottom */
+            }
+        }
+        @media (min-width: 1024px) {
+            .form-section {
+                grid-template-columns: 3fr 1fr auto;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            font-size: 0.95em;
+        }
+
+        input[type="file"], select {
+            width: 100%;
+            padding: 12px 18px; /* More padding */
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--radius-sm);
+            background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent for glassmorphism */
+            color: var(--md-sys-color-on-surface);
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        input[type="file"]:focus, select:focus {
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 4px var(--md-sys-color-primary-container); /* Larger shadow */
+            background-color: rgba(255, 255, 255, 0.8); /* Less transparent on focus */
+            outline: none;
+        }
+
+        input[type="file"]::file-selector-button {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            padding: 10px 20px; /* More padding */
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            margin-right: 15px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .upload-section { width: 100%; max-width: 500px; text-align: center; }
-        .controls-section { width: 100%; max-width: 300px; }
-        .results-section { width: 100%; flex-grow: 1; min-width: 500px; }
-        .controls-section label, .controls-section select, .controls-section button {
-            display: block;
-            margin-bottom: 10px;
-            width: calc(100% - 10px);
+        input[type="file"]::file-selector-button:hover {
+            background-color: var(--md-sys-color-secondary);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
         }
-        .controls-section select {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+
+        /* Custom Select Arrow - using a more robust base64 SVG */
+        select {
+            appearance: none; /* Hide default arrow */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%234A148C" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 12px center; /* Positioned inside */
+            background-size: 20px;
         }
-        .controls-section button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
+
+
+        button[type="submit"] {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
             border: none;
-            border-radius: 4px;
+            padding: 12px 25px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-top: 0;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* More prominent shadow */
+            width: auto;
+            justify-self: stretch; /* Stretch to fill grid cell */
+            min-width: 150px;
         }
-        .controls-section button:hover { background-color: #0056b3; }
-        #imagePreview, #comparisonContainer {
+        button[type="submit"]:hover {
+            background-color: var(--md-sys-color-secondary);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+        button[type="submit"]:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+
+        .feedback-message {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+            font-weight: 500;
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            transition: opacity 0.3s ease;
+        }
+        .loading {
+            color: var(--md-sys-color-on-primary-container);
+            background-color: var(--md-sys-color-primary-container);
+            display: none;
+        }
+        .error {
+            color: var(--md-sys-color-on-error-container);
+            background-color: var(--md-sys-color-error-container);
+            border: 1px solid var(--md-sys-color-error);
+            display: none;
+        }
+
+        .image-results-section {
+            margin-top: 60px; /* More space */
+            padding-top: 40px;
+            border-top: 1px solid rgba(121, 116, 126, 0.1); /* Softer border */
+        }
+        .image-display {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+        .image-box {
+            flex: 1;
+            min-width: 320px;
+            max-width: 48%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Glassmorphism border */
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            background-color: rgba(255, 255, 255, 0.3); /* Lighter semi-transparent */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Softer, larger shadow */
+            backdrop-filter: blur(5px); /* Subtle glassmorphism */
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .image-box h2 {
+            margin-top: 0;
+            color: var(--md-sys-color-primary);
+            font-size: 1.6em;
+            font-weight: 500;
+            margin-bottom: var(--spacing-md);
+        }
+        .image-box img {
             max-width: 100%;
             height: auto;
+            border: 1px solid var(--md-sys-color-outline);
+            margin-top: 0;
             display: block;
-            margin-top: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        #comparisonContainer {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-start;
+        /* Hide images initially */
+        #originalImage, #processedImage {
+            display: none;
         }
-        .image-wrapper {
-            text-align: center;
-            margin: 10px;
+
+        /* Responsive adjustments */
+        @media (max-width: 767px) {
+            .image-box {
+                max-width: 100%;
+            }
+            body {
+                padding: var(--spacing-md);
+            }
+            .container {
+                padding: var(--spacing-md);
+            }
+            h1 {
+                font-size: 2.2em;
+                margin-bottom: 30px;
+            }
+            .form-section {
+                grid-template-columns: 1fr;
+            }
+            button[type="submit"] {
+                width: 100%;
+                justify-self: stretch;
+            }
         }
-        .image-wrapper img {
-            max-width: 45%;
-            height: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8em;
+            }
         }
-        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="upload-section">
-            <h2>Upload Image</h2>
-            <input type="file" id="imageUpload" accept="image/*">
-            <div id="imagePreviewContainer" class="hidden">
-                <h3>Preview:</h3>
-                <img id="imagePreview" src="#" alt="Image Preview">
-            </div>
-        </div>
+        <h1>EdgeVision Image Processor</h1>
 
-        <div class="controls-section">
-            <h2>Processing Options</h2>
-            <label for="algorithm">Select Algorithm:</label>
-            <select id="algorithm">
-                <option value="canny">Canny Edge Detection</option>
-                <option value="sobel">Sobel Operator</option>
-                <option value="prewitt">Prewitt Operator</option>
-                <option value="laplacian">Laplacian Operator</option>
-                <option value="hsv">HSV Color Space</option>
-            </select>
-            <button id="processButton">Process Image</button>
-        </div>
-
-        <div class="results-section">
-            <h2>Results</h2>
-            <div id="comparisonContainer">
-                <div class="image-wrapper hidden">
-                    <h3>Original</h3>
-                    <img id="originalImageDisplay" src="#" alt="Original Image">
+        <form id="uploadForm">
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="imageFile">Pilih Gambar Anda:</label>
+                    <input type="file" id="imageFile" name="file" accept="image/*" required>
                 </div>
-                <div class="image-wrapper hidden">
-                    <h3>Processed</h3>
-                    <img id="processedImageDisplay" src="#" alt="Processed Image">
+                <div class="form-group">
+                    <label for="filterType">Pilih Algoritma Edge Detection:</label>
+                    <select id="filterType" name="filter">
+                        <option value="canny">Canny (Default)</option>
+                        <option value="sobel">Sobel</option>
+                        <option value="prewitt">Prewitt</option>
+                        <option value="laplacian">Laplacian</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: span 1 / auto; align-self: end;">
+                    <button type="submit">Proses Gambar</button>
                 </div>
             </div>
-            <p id="processingStatus" style="text-align: center;"></p>
+        </form>
+
+        <div id="feedbackContainer">
+            <div class="feedback-message loading" id="loadingMessage">Memproses gambar Anda...</div>
+            <div class="feedback-message error" id="errorMessage"></div>
+        </div>
+
+        <div class="image-results-section">
+            <div class="image-display">
+                <div class="image-box">
+                    <h2>Gambar Asli</h2>
+                    <img id="originalImage" src="" alt="Gambar Asli">
+                </div>
+                <div class="image-box">
+                    <h2>Gambar Hasil</h2>
+                    <img id="processedImage" src="" alt="Gambar Hasil">
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        const imageUpload = document.getElementById('imageUpload');
-        const imagePreview = document.getElementById('imagePreview');
-        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-        const algorithmSelect = document.getElementById('algorithm');
-        const processButton = document.getElementById('processButton');
-        const originalImageDisplay = document.getElementById('originalImageDisplay');
-        const processedImageDisplay = document.getElementById('processedImageDisplay');
-        const comparisonContainer = document.getElementById('comparisonContainer');
-        const processingStatus = document.getElementById('processingStatus');
-        const originalImageWrapper = document.querySelector('#comparisonContainer .image-wrapper:nth-of-type(1)');
-        const processedImageWrapper = document.querySelector('#comparisonContainer .image-wrapper:nth-of-type(2)');
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
 
-        let uploadedImage = null;
+            const form = event.target;
+            const formData = new FormData(form);
+            const imageFile = document.getElementById('imageFile').files[0];
 
-        imageUpload.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const originalImage = document.getElementById('originalImage');
+            const processedImage = document.getElementById('processedImage');
+
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+            originalImage.style.display = 'none';
+            originalImage.src = '';
+            processedImage.style.display = 'none';
+            processedImage.src = '';
+            loadingMessage.style.display = 'block';
+
+            if (imageFile) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    uploadedImage = e.target.result;
-                    imagePreview.src = uploadedImage;
-                    imagePreviewContainer.classList.remove('hidden');
-                    originalImageDisplay.src = uploadedImage; // Set original image display
-                    originalImageWrapper.classList.remove('hidden');
-                    processedImageWrapper.classList.add('hidden'); // Hide processed image initially
-                    comparisonContainer.classList.remove('hidden');
-                    processingStatus.textContent = '';
-                }
-                reader.readAsDataURL(file);
+                    originalImage.src = e.target.result;
+                    originalImage.style.display = 'block';
+                };
+                reader.readAsDataURL(imageFile);
             } else {
-                uploadedImage = null;
-                imagePreview.src = '#';
-                imagePreviewContainer.classList.add('hidden');
-                comparisonContainer.classList.add('hidden');
-                originalImageWrapper.classList.add('hidden');
-                processedImageWrapper.classList.add('hidden');
-                processingStatus.textContent = '';
-            }
-        });
-
-        processButton.addEventListener('click', async () => {
-            if (!uploadedImage) {
-                processingStatus.textContent = 'Please upload an image first.';
+                loadingMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Error: Pilih file gambar terlebih dahulu.';
                 return;
             }
-
-            const algorithm = algorithmSelect.value;
-            processingStatus.textContent = 'Processing...';
-            comparisonContainer.classList.remove('hidden');
-            processedImageWrapper.classList.remove('hidden'); // Show processed image section
 
             try {
                 const response = await fetch('/api/process', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        image: uploadedImage,
-                        algorithm: algorithm
-                    })
+                    body: formData
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-
-                if (result.processed_image) {
-                    processedImageDisplay.src = result.processed_image;
-                    processingStatus.textContent = 'Processing complete!';
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const imageUrl = URL.createObjectURL(blob);
+                    processedImage.src = imageUrl;
+                    processedImage.style.display = 'block';
                 } else {
-                    processingStatus.textContent = 'Error: No processed image returned.';
-                    console.error('Processing failed:', result);
+                    const errorText = await response.text();
+                    let errorData = { error: 'Terjadi kesalahan saat memproses gambar.' };
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch (e) {
+                        errorData.error = errorText;
+                    }
+                    errorMessage.textContent = 'Error: ' + (errorData.error || 'Terjadi kesalahan tidak dikenal.');
+                    errorMessage.style.display = 'block';
                 }
             } catch (error) {
-                processingStatus.textContent = 'An error occurred during processing.';
-                console.error('Error:', error);
+                errorMessage.textContent = 'Network error: ' + error.message;
+                errorMessage.style.display = 'block';
+            } finally {
+                loadingMessage.style.display = 'none';
             }
         });
     </script>

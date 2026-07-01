@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import cv2
 import numpy as np
 import io
@@ -19,6 +19,10 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/api/process', methods=['POST'])
 def process_image():
@@ -63,4 +67,4 @@ def process_image():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=False, port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)
